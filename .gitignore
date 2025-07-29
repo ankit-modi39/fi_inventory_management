@@ -1,4 +1,5 @@
-virenv/
-__pycache__/
-*.pyc
-.env
+backend/virenv/
+backend/__pycache__/
+backend/*.pyc
+backend/.env
+**/__pycache__/
