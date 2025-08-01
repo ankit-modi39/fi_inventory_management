@@ -1,5 +1,5 @@
 services:
-  postgres:
+  pdb:
     image: postgres:15
     container_name: inventory_postgres
     env_file:
@@ -13,20 +13,41 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    entrypoint : ["true"]
+    volumes:
+      - frontend-build:/app/build
+    networks:
+      - app-network
 
   backend:
     build: ./backend
     container_name: inventory_backend
     depends_on:
-      postgres:
+      pdb:
         condition: service_healthy
+      frontend:
+        condition: service_completed_successfully
     ports:
       - "8080:8080"
     env_file:
       - ./backend/.env
     volumes:
-      - ./backend:/app
+      - frontend-build:/app/static
     restart: unless-stopped
+    networks:
+      - app-network
 
 volumes:
   postgres_data:
+  frontend-build:
+
+networks:
+  app-network:
+    driver: bridge

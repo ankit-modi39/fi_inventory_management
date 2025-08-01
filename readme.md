@@ -1,147 +1,180 @@
-# Inventory Management System
+# 🧾 Inventory Management System
 
-A containerized REST API for managing inventory built with FastAPI and PostgreSQL using Docker.
+A full-stack inventory management system using FastAPI and React, bundled through Docker and served via a single port.
 
-## Features
+## 🏗️ Architecture Overview
 
-- ✅ User registration and JWT authentication
-- ✅ Product CRUD operations  
-- ✅ Inventory quantity management
-- ✅ Dockerized application with PostgreSQL
-- ✅ Automated database initialization
-- ✅ Development environment with hot reload
-- ✅ Automatic API documentation
-- ✅ Clean, scalable architecture
+- **Backend**: FastAPI (Python) with secure JWT-based authentication and async PostgreSQL operations
+- **Frontend**: React app served via FastAPI’s `StaticFiles` mount
+- **Database**: PostgreSQL with asyncpg and SQLAlchemy
+- **Deployment**: Docker Compose with a unified single-port setup (http://localhost:8080)
 
-## Quick Setup with Docker 🐳
+---
 
-### Prerequisites
-- Docker Desktop installed
-- Docker Compose installed
+## 🚀 Quick Start
 
-### 1. Clone and Setup Project Structure
-```bash
-git clone 
-cd inventory-system
-```
+### 🔧 Prerequisites
 
-### 2. Configure Environment Variables
-Create `backend/.env` file:
+- Docker & Docker Compose installed
+- Port `8080` available
+
+---
+
+### 📁 1. Environment Setup
+
+Create a `.env` file inside `backend/`:
+
 ```env
 # Database Configuration
-DB_HOST=postgres
-POSTGRES_DB=your_db
-POSTGRES_USER=your_user
+DATABASE_URL=postgresql+asyncpg://your_user_name:your_password@postgres:5432/your_db_name
+POSTGRES_DB=your_db_name
+POSTGRES_USER=your_user_name
 POSTGRES_PASSWORD=your_password
 
-# FastAPI Database Connection
-DATABASE_URL=postgresql+asyncpg://your_user:your_password_123@postgres:5432/your_db
-
-# JWT Authentication
-SECRET_KEY=your-jwt-secret-key-change-this
+# Security
+SECRET_KEY=your-super-secret-key-change-this-in-production-123456789
 ALGORITHM=HS256
-```
+````
 
-### 3. Start the Application
+---
+
+### 🛠️ 2. Build and Launch Services
+
 ```bash
-# Build and start all services
+cd inventory-system
+
+# Build and start containers
 docker-compose up --build
 
-# Or run in background
+# Optional: Run in background
 docker-compose up --build -d
 ```
 
-### 4. Initialize Database Tables
+---
+
+### 🧱 3. Initialize Database
+
+Once services are healthy (see logs):
+
 ```bash
-# Initialize the database schema
 docker-compose exec backend python init_db.py
 ```
 
-### 5. Test the API
+Expected output:
+
+```
+Initializing database...
+Database tables created successfully!
+```
+
+---
+
+### 🌐 4. Access Application
+
+| Service        | URL                                                        |
+| -------------- | ---------------------------------------------------------- |
+| 🖥️ Main UI    | [http://localhost:8080](http://localhost:8080)             |
+| 🧪 API Docs    | [http://localhost:8080/docs](http://localhost:8080/docs)   |
+| 🧾 ReDoc       | [http://localhost:8080/redoc](http://localhost:8080/redoc) |
+| 🗄️ PostgreSQL | localhost:5432 (external)                                  |
+
+---
+
+## 🎯 Features
+
+### 🔒 Backend
+
+* ✅ JWT authentication
+* ✅ RESTful API with OpenAPI docs
+* ✅ Async DB with SQLAlchemy
+* ✅ Pydantic-based schema validation
+* ✅ Product and User CRUD
+* ✅ Pagination, health checks, error handling
+
+### 💻 Frontend
+
+* ✅ React app with Hooks & functional components
+* ✅ Responsive layout (mobile & desktop)
+* ✅ Auth flow using JWT
+* ✅ CRUD UI for product management
+* ✅ Form validations & feedback
+* ✅ Pagination, loading indicators
+
+---
+
+## 🧪 Testing
+
+### 🧪 API Tests
+
 ```bash
-# Run the test suite
 docker-compose exec backend python test_api.py
 ```
 
-## Docker Services 🚀
+Expected output:
 
-| Service | Port | Description |
-|---------|------|-------------|
-| **backend** | 8080 | FastAPI application server |
-| **postgres** | 5432 | PostgreSQL database |
+```
+✅ Health Check - PASSED
+✅ User Registration - PASSED
+✅ User Login - PASSED
+✅ Create Product - PASSED
+✅ Get Products - PASSED
+✅ Get Single Product - PASSED
+✅ Update Product Quantity - PASSED
+✅ Delete Product - PASSED
+```
 
-## API Endpoints
+### 🧍 Manual API Testing
 
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| GET | `/` | API health check | No |
-| GET | `/health` | Service health status | No |
-| POST | `/register` | Register new user | No |
-| POST | `/login` | User login | No |
-| POST | `/products` | Create product | Yes |
-| GET | `/products` | Get all products (paginated) | Yes |
-| GET | `/products/{id}` | Get single product | Yes |
-| PUT | `/products/{id}/quantity` | Update quantity | Yes |
-| DELETE | `/products/{id}` | Delete product | Yes |
+1. Visit `http://localhost:8080/docs`
+2. Register → Login → Authorize with token
+3. Perform CRUD on products
 
-## API Documentation
+---
 
-Once running, visit:
-- **Swagger UI**: http://localhost:8080/docs
-- **ReDoc**: http://localhost:8080/redoc
-- **Health Check**: http://localhost:8080/health
+## 📜 API Endpoints
 
+### 🔐 Authentication
 
-### Direct Database Access:
+* `POST /register`
+* `POST /login`
+
+### 📦 Products
+
+* `GET /products` — paginated
+* `POST /products`
+* `GET /products/{id}`
+* `PUT /products/{id}/quantity`
+* `DELETE /products/{id}`
+
+### 🧾 Documentation
+
+* `/docs` (Swagger)
+* `/redoc` (ReDoc)
+
+---
+
+## 🛢️ PostgreSQL Access (Optional)
+
 ```bash
-# Access PostgreSQL directly
-docker-compose exec postgres psql -U inventory_user -d inventory_db
+docker-compose exec postgres psql -U your_user_name -d your_db_name
 
-# View tables
+# List tables
 \dt
+
+# Example queries
+SELECT * FROM users;
+SELECT * FROM products LIMIT 5;
 
 # Exit
 \q
 ```
 
-## Development Workflow 🔄
+---
 
-### Making Code Changes
-Your code changes are automatically reflected due to volume mounting:
-```bash
-# Edit any file in backend/ directory
-# Changes are immediately available in the container
-# FastAPI auto-reloads with --reload flag
-```
+## 📐 Database Schema
 
-### Restart Services
-```bash
-# For environment variable changes
-docker-compose restart
+### `users` Table
 
-# For dependency changes
-docker-compose up --build
-
-# Stop all services
-docker-compose down
-```
-
-### View Logs
-```bash
-# View all logs
-docker-compose logs
-
-# View specific service logs
-docker-compose logs backend
-docker-compose logs postgres
-
-# Follow logs in real-time
-docker-compose logs -f backend
-```
-
-## Database Schema
-
-### Users Table
 ```sql
 CREATE TABLE users (
     id UUID PRIMARY KEY,
@@ -150,7 +183,8 @@ CREATE TABLE users (
 );
 ```
 
-### Products Table
+### `products` Table
+
 ```sql
 CREATE TABLE products (
     id UUID PRIMARY KEY,
@@ -164,63 +198,52 @@ CREATE TABLE products (
 );
 ```
 
-## Example Usage
+---
 
-### 1. Register User
+## 🐳 Docker Overview
+
+| Service          | Port | Description               |
+| ---------------- | ---- | ------------------------- |
+| postgres         | 5432 | PostgreSQL database       |
+| backend          | 8080 | FastAPI + Static frontend |
+| frontend-builder | -    | Builds React app          |
+
+---
+
+### ⚙️ Docker Commands
+
 ```bash
-curl -X POST "http://localhost:8080/register" \
-  -H "Content-Type: application/json" \
-  -d '{"username": "testuser", "password": "testpass123"}'
+# Logs
+docker-compose logs -f backend
+docker-compose logs -f postgres
+
+# Restart or Rebuild
+docker-compose restart backend
+docker-compose build --no-cache backend
+
+# Shell Access
+docker-compose exec backend /bin/bash
+docker-compose exec postgres /bin/bash
+
+# Shutdown
+docker-compose down
+
+# Full cleanup (⚠️ removes volumes and data)
+docker-compose down -v
 ```
 
-### 2. Login
-```bash
-curl -X POST "http://localhost:8080/login" \
-  -H "Content-Type: application/json" \
-  -d '{"username": "testuser", "password": "testpass123"}'
-```
+---
 
-### 3. Create Product (with Authentication)
-```bash
-curl -X POST "http://localhost:8080/products" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Gaming Laptop",
-    "type": "Electronics", 
-    "sku": "LAP-001",
-    "description": "High-performance gaming laptop",
-    "quantity": 10,
-    "price": "1299.99"
-  }'
-```
+## 🧰 Tech Stack
 
-### 4. Get Products (Paginated)
-```bash
-curl -X GET "http://localhost:8080/products?page=1&size=10" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
-
-### 5. Update Product Quantity
-```bash
-curl -X PUT "http://localhost:8080/products/PRODUCT_UUID/quantity" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"quantity": 25}'
-```
-
-
-
-
-## Tech Stack
-
-- **FastAPI**: Modern, fast web framework for building APIs
-- **PostgreSQL**: Robust relational database with UUID support
-- **Docker**: Containerization platform for consistent deployments
-- **SQLAlchemy**: Python SQL toolkit and async ORM
-- **JWT**: Secure token-based authentication
-- **Pydantic**: Data validation using Python type hints
-- **Bcrypt**: Secure password hashing
-- **Uvicorn**: ASGI server with auto-reload for development
+* **FastAPI**: High-performance Python web framework
+* **React**: Frontend UI with components/hooks
+* **PostgreSQL**: SQL database with UUID + async support
+* **Docker Compose**: Unified multi-container setup
+* **JWT**: Token-based authentication
+* **SQLAlchemy + asyncpg**: DB interactions
+* **Bcrypt**: Password hashing
+* **Uvicorn**: ASGI server
+* **StaticFiles**: Serves React via FastAPI
 
 ---

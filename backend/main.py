@@ -1,9 +1,13 @@
-from fastapi import FastAPI, Depends, HTTPException, status, Query
+from fastapi import FastAPI, Depends, HTTPException, status, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import List
 import uuid
 from datetime import timedelta
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+import os
+from pathlib import Path
 
 from app.database import get_db, User, Product
 from app.schemas import UserCreate, UserLogin, Token, ProductCreate, ProductUpdate, ProductResponse, ProductCreateResponse
@@ -17,18 +21,10 @@ app = FastAPI(
 
 @app.get("/")
 async def root():
-    return {
-        "message": "Inventory Management System API", 
-        "docs": "/docs",
-        "status": "running in Docker again"
-    }
-
-@app.get("/health")
-async def health_check():
-    return {"status": "healthy", "environment": "docker"}
+    return FileResponse("static/index.html")
 
 
-@app.post("/register", status_code=status.HTTP_201_CREATED)
+@app.post("/api/register", status_code=status.HTTP_201_CREATED)
 async def register_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
     stmt = select(User).where(User.username == user.username)
     result = await db.execute(stmt)
@@ -47,8 +43,9 @@ async def register_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
     await db.refresh(db_user)
     return {"message": "User registered successfully"}
 
-@app.post("/login", response_model=Token)
+@app.post("/api/login", response_model=Token)
 async def login(user: UserLogin, db: AsyncSession = Depends(get_db)):
+    print("Login endpoint called with:", user)
     stmt = select(User).where(User.username == user.username)
     result = await db.execute(stmt)
     db_user = result.scalar_one_or_none()
@@ -67,7 +64,7 @@ async def login(user: UserLogin, db: AsyncSession = Depends(get_db)):
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@app.post("/products", response_model=ProductCreateResponse, status_code=status.HTTP_201_CREATED)
+@app.post("/api/products", response_model=ProductCreateResponse, status_code=status.HTTP_201_CREATED)
 async def create_product(
     product: ProductCreate,
     current_user: User = Depends(get_current_user),
@@ -96,7 +93,7 @@ async def create_product(
     )
 
 
-@app.get("/products", response_model=List[ProductResponse])
+@app.get("/api/products", response_model=List[ProductResponse])
 async def get_products(
     page: int = Query(1, ge=1),
     size: int = Query(10, ge=1, le=100),
@@ -114,7 +111,7 @@ async def get_products(
     return [ProductResponse.model_validate(product) for product in products]
 
 
-@app.get("/products/{product_id}", response_model=ProductResponse)
+@app.get("/api/products/{product_id}", response_model=ProductResponse)
 async def get_product(
     product_id: str,
     current_user: User = Depends(get_current_user),
@@ -141,7 +138,7 @@ async def get_product(
     return ProductResponse.model_validate(product)
 
 
-@app.put("/products/{product_id}/quantity", response_model=ProductResponse)
+@app.put("/api/products/{product_id}/quantity", response_model=ProductResponse)
 async def update_product_quantity(
     product_id: str,
     product_update: ProductUpdate,
@@ -173,7 +170,7 @@ async def update_product_quantity(
     return ProductResponse.model_validate(product)
 
 
-@app.delete("/products/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
+@app.delete("/api/products/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_product(
     product_id: str,
     current_user: User = Depends(get_current_user),
@@ -197,8 +194,19 @@ async def delete_product(
             detail="Product not found"
         )
     
-    db.delete(product)
+    await db.delete(product)
     await db.commit()
+
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "environment": "docker"}
+
+# Mount static directory
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+@app.get("/{full_path:path}")
+async def serve_react_app(request: Request, full_path: str):
+    return FileResponse("static/index.html")
 
 if __name__ == "__main__":
     import uvicorn
