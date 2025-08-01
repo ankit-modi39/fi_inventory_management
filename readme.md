@@ -2,6 +2,9 @@
 
 A full-stack inventory management system using FastAPI and React, bundled through Docker and served via a single port.
 
+![login page](frontend/images/main_page.png)
+![dashboard](frontend/images/updatedDash.png)
+
 ## 🏗️ Architecture Overview
 
 - **Backend**: FastAPI (Python) with secure JWT-based authentication and async PostgreSQL operations
